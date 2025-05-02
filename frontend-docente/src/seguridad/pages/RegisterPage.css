@@ -1,0 +1,65 @@
+.register-page {
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  /* IZQUIERDA: Imagen */
+  .left-side {
+    flex: 1;
+    background-color: #142B6B;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  
+  .facultad-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  /* DERECHA: Formulario */
+  .right-side {
+    flex: 1;
+    background-color: white;
+    padding: 4rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .register-title {
+    font-size: 2rem;
+    color: #142B6B;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: left;
+  }
+  
+  .register-form input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1.2rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+  }
+  
+  .register-btn {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #142B6B;
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .register-btn:hover {
+    background-color: #113a8a;
+  }
+  
