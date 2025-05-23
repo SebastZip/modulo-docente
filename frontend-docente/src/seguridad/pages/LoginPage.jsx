@@ -1,15 +1,21 @@
 import { useDispatch } from 'react-redux';
-import { login } from '../slices';
+import { login, checkingCredentials } from '../slices';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import './LoginPage.css';
 
 export const LoginPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showRegister, setShowRegister] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [applyBlur, setApplyBlur] = useState(false);
   const registerRef = useRef(null);
+
+  // Estados para el formulario de login
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const [toastMessages, setToastMessages] = useState([]);
 
@@ -49,8 +55,6 @@ export const LoginPage = () => {
     setApplyBlur(true);
   };
 
-  
-
   const handleCloseRegister = () => {
     setApplyBlur(false);
     setIsClosing(true);
@@ -58,6 +62,71 @@ export const LoginPage = () => {
       setShowRegister(false);
       setIsClosing(false);
     }, 350);
+  };
+
+  // Función para manejar el login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setToastMessages([]); // Limpiar mensajes previos
+
+    // Validaciones básicas
+    if (!loginEmail || !loginPassword) {
+      showCustomToast("❌ Por favor, completa todos los campos");
+      setLoginLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/api/usuarios/login", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword
+        })
+      });
+
+      const result = await response.text();
+
+      if (response.ok) {
+        showCustomToast("✅ " + result);
+        
+        console.log("Iniciando proceso de login...");
+        
+        // Seguir el flujo correcto: primero checking, luego authenticated
+        dispatch(checkingCredentials());
+        console.log("Dispatched checkingCredentials");
+        
+        // Luego hacer el login con los datos del usuario
+        setTimeout(() => {
+          console.log("Dispatching login...");
+          dispatch(login({ 
+            uid: 'manual_login_' + Date.now(), // ID único para login manual
+            email: loginEmail,
+            displayName: loginEmail.split('@')[0], // Usar parte del email como nombre
+            photoURL: null
+          }));
+          console.log("Login dispatched");
+          
+          // Navegar al dashboard en la ruta de cursos
+          setTimeout(() => {
+            console.log("Navegando al dashboard...");
+            navigate('/cursos/dashboard'); // Ahora sí debería funcionar
+          }, 200);
+        }, 100);
+        
+      } else {
+        showCustomToast("❌ " + result);
+      }
+    } catch (error) {
+      console.error("Error en el login:", error);
+      showCustomToast("❌ Hubo un error al iniciar sesión. Verifica tu conexión.");
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -75,7 +144,6 @@ export const LoginPage = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showRegister]);
-  
 
   useEffect(() => {
     fetch("http://localhost:8080/api/categorias").then(res => res.json()).then(setCategorias);
@@ -156,20 +224,40 @@ export const LoginPage = () => {
           <div className="logo-container">
             <img src="/images/v98_36.png" alt="Logo UNMSM" className="logo" />
           </div>
-          <form>
+          <form onSubmit={handleLogin}>
             <div className="input-group">
               <div className="icon-wrapper">
                 <img src="/images/v98_31.png" alt="Icono usuario" className="input-icon" />
               </div>
-              <input type="email" placeholder="Correo institucional" />
+              <input 
+                type="email" 
+                placeholder="Correo institucional"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                required
+                disabled={loginLoading}
+              />
             </div>
             <div className="input-group">
               <div className="icon-wrapper">
                 <img src="/images/v98_34.png" alt="Icono contraseña" className="input-icon" />
               </div>
-              <input type="password" placeholder="Contraseña" />
+              <input 
+                type="password" 
+                placeholder="Contraseña"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                required
+                disabled={loginLoading}
+              />
             </div>
-            <button type="submit" className="login-button">Ingresar</button>
+            <button 
+              type="submit" 
+              className="login-button"
+              disabled={loginLoading}
+            >
+              {loginLoading ? 'Ingresando...' : 'Ingresar'}
+            </button>
             <a href="#" className="forgot">¿Olvidaste tu contraseña?</a>
             <p className="register">
               ¿Nuevo Usuario?{' '}
